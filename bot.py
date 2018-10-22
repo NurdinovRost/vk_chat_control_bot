@@ -38,8 +38,8 @@ def check_post(cmd, chat_num):
     time_last_start = float(file.read())
     time_now = time.time()
     file.close()
-    if time_now - time_last_start < 18000:
-        t = time.strftime('%H:%M:%S', time.gmtime(18000 - (time_now - time_last_start)))
+    if time_now - time_last_start < 7200:
+        t = time.strftime('%H:%M:%S', time.gmtime(7200 - (time_now - time_last_start)))
         vk.messages.send(chat_id=chat_num, message="До использовании функции осталось: {t}".format(t=t))
         return 0
     else:
@@ -63,9 +63,9 @@ def check_post(cmd, chat_num):
         users_in_chat.reverse()
         text = "Было создано постов\n"
         text += "_____________________\n"
-
+        num = 1
         for user in users_in_chat:
-            text += '@id' + str(user[0]) + " " + dict_name_users[user[0]] + ': ' + str(user[1]) + '\n'
+            text += str(num) + '@id. ' + str(user[0]) + " " + dict_name_users[user[0]] + ': ' + str(user[1]) + '\n'
         text += "_____________________"
         vk.messages.send(chat_id=chat_num, message=text)
         file = open('time.txt', 'w')
@@ -90,25 +90,28 @@ def get_followers(user_id):
 def check_friends(users, chat_num):
     users_in_chat = vk.messages.getChat(chat_id=chat_num)['users']
     list_users = users.split(' ')
+    print(users_in_chat)
     print(list_users)
     for i in range(len(list_users)):
-        if '@id' in list_users[i]:
-            list_users[i] = list_users[i].split('|')[0][3:]
-            print(list_users[i])
+        if 'id' in list_users[i]:
+            list_users[i] = list_users[i][2:]
+            if int(list_users[i]) in users_in_chat:
+                users_in_chat.remove(int(list_users[i]))
     if len(list_users) < 2:
         print("function !add callable with arguments (users id)!!")
     else:
-        print(list_users)
         for i in range(1, len(list_users)):
             info = {'friends': 0, 'followers': 0, 'not_friends': []}
-            temp = vk.friends.get(user_id=list_users[i], count=8000)
+            try:
+                temp = vk.friends.get(user_id=list_users[i], count=8000)
+            except Exception as err:
+                print(err)
+                continue
             friends = temp['items']
             for user in users_in_chat:
                 if user in friends:
                     info['friends'] += 1
                 else:
-                    print(list_users[i])
-                    print(get_followers(user))
                     if int(list_users[i]) in get_followers(user):
                         info['followers'] += 1
                     else:
@@ -130,8 +133,8 @@ def add(users, chat_num):
     user_in_chat = vk.messages.getChat(chat_id=chat_num)['users']
     list_users = users.split(' ')
     for i in range(len(list_users)):
-        if '@id' in list_users[i]:
-            list_users[i] = list_users[i].split('|')[0][3:]
+        if 'id' in list_users[i]:
+            list_users[i] = list_users[i][2:]
             # print(list_users[i])
     if len(list_users) < 2:
         print("function !add callable with arguments (users id)!!")
@@ -151,8 +154,8 @@ def delete(users, chat_num):
     user_in_chat = vk.messages.getChat(chat_id=chat_num)['users']
     list_users = users.split(' ')
     for i in range(len(list_users)):
-        if '@id' in list_users[i]:
-            list_users[i] = list_users[i].split('|')[0][3:]
+        if 'id' in list_users[i]:
+            list_users[i] = list_users[i][2:]
             # print(list_users[i])
     if len(list_users) < 2:
         print("function !add callable with arguments (users id)!!")
